@@ -80,6 +80,40 @@ npm run build
 npm run start:prod
 ```
 
+## 🚁 Deploy to Railway
+
+This project is ready to deploy on Railway with zero configuration:
+
+### Quick Deploy
+1. Fork this repository
+2. Connect to Railway: https://railway.app
+3. Create new project from GitHub repo
+4. Add a PostgreSQL database service
+5. Set environment variables:
+   ```env
+   JWT_SECRET=your-jwt-secret-key
+   SESSION_SECRET=your-session-secret-key
+   ```
+6. Deploy automatically!
+
+### Railway Configuration Files
+- `Procfile` - Defines the start command
+- `railway.json` - Railway-specific configuration
+- `.env.example` - Environment variables template
+
+Railway will automatically:
+- Install dependencies
+- Build the TypeScript project
+- Start the production server
+- Provide PostgreSQL database with SSL
+- Set up automatic deployments
+
+### Environment Variables for Railway
+Railway automatically provides:
+- `DATABASE_URL` or individual DB variables
+- `PORT` (automatically configured)
+- Custom variables you set in the Railway dashboard
+
 ## 🚀 API Endpoints
 
 ### Authentication

@@ -9,10 +9,12 @@ import * as passport from 'passport';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
-  app.useGlobalFilters(new GlobalHttpExceptionFilter());
   
-  app.enableCors();
+  // Enable CORS for Railway deployment
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   // Configure session middleware
   app.use(
@@ -23,7 +25,7 @@ async function bootstrap() {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       },
     }),
   );
@@ -32,11 +34,23 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  // Global pipes and filters (only once)
+  app.useGlobalPipes(new ValidationPipe({ 
+    transform: true, 
+    whitelist: true, 
+    forbidNonWhitelisted: true 
+  }));
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
+  
+  // Serve static files
   app.useStaticAssets(join(__dirname, '..', 'public'));
-
-  await app.listen(3000);
-  console.log('🚀 Application is running on: http://localhost:3000');
+  const port = process.env.PORT || 3000;
+  await app.listen(port, '0.0.0.0'); // Important: bind to all interfaces for Railway
+  console.log(`🚀 Application is running on port: ${port}`);
 }
+
+bootstrap().catch((error) => {
+  console.error('Error starting application:', error);
+  process.exit(1);
+});
 bootstrap();
