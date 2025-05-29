@@ -5,7 +5,10 @@ A comprehensive e-commerce backend built with NestJS, TypeScript, and PostgreSQL
 ## 🚀 Features
 
 ### Core Modules
-- **Authentication & Authorization** - JWT-based auth with role-based access control
+- **Authentication & Authorization** - Dual authentication system:
+  - JWT-based authentication (stateless)
+  - Session-based authentication (stateful with cookies)
+  - Role-based access control (Admin/Customer)
 - **User Management** - User registration, profiles, and admin management
 - **Product Catalog** - Products with categories, pricing, and inventory
 - **Shopping Cart** - Session-based cart management
