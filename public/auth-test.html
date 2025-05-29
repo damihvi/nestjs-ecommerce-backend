@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Authentication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .profile-btn {
+            background-color: #28a745;
+        }
+        .profile-btn:hover {
+            background-color: #218838;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .auth-section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 E-commerce Session Authentication Test</h1>
+        
+        <div class="auth-section">
+            <h2>Session-Based Login (No Tokens Required)</h2>
+            <form id="sessionLoginForm">
+                <div class="form-group">
+                    <label for="sessionEmail">Email:</label>
+                    <input type="email" id="sessionEmail" name="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="sessionPassword">Password:</label>
+                    <input type="password" id="sessionPassword" name="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit">Login with Session</button>
+                <button type="button" class="profile-btn" onclick="getSessionProfile()">Get Profile</button>
+                <button type="button" class="logout-btn" onclick="sessionLogout()">Logout</button>
+            </form>
+        </div>
+
+        <div class="auth-section">
+            <h2>JWT-Based Login (Token Required)</h2>
+            <form id="jwtLoginForm">
+                <div class="form-group">
+                    <label for="jwtEmail">Email:</label>
+                    <input type="email" id="jwtEmail" name="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="jwtPassword">Password:</label>
+                    <input type="password" id="jwtPassword" name="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit">Login with JWT</button>
+            </form>
+        </div>
+
+        <div id="response" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        const apiBase = 'http://localhost:3000';
+        
+        // Session-based login
+        document.getElementById('sessionLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch(`${apiBase}/auth/session/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Important for sessions
+                    body: JSON.stringify({
+                        email: formData.get('email'),
+                        password: formData.get('password')
+                    })
+                });
+                
+                const data = await response.json();
+                showResponse(data, response.ok);
+                
+                if (response.ok) {
+                    document.getElementById('sessionEmail').value = '';
+                    document.getElementById('sessionPassword').value = '';
+                }
+            } catch (error) {
+                showResponse({ message: 'Network error: ' + error.message }, false);
+            }
+        });
+
+        // JWT-based login
+        document.getElementById('jwtLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch(`${apiBase}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        identifier: formData.get('email'),
+                        password: formData.get('password')
+                    })
+                });
+                
+                const data = await response.json();
+                showResponse(data, response.ok);
+                
+                if (response.ok) {
+                    // Store JWT token for future requests
+                    localStorage.setItem('jwt_token', data.data.access_token);
+                    document.getElementById('jwtEmail').value = '';
+                    document.getElementById('jwtPassword').value = '';
+                }
+            } catch (error) {
+                showResponse({ message: 'Network error: ' + error.message }, false);
+            }
+        });
+
+        // Get session profile
+        async function getSessionProfile() {
+            try {
+                const response = await fetch(`${apiBase}/auth/session/profile`, {
+                    method: 'GET',
+                    credentials: 'include' // Important for sessions
+                });
+                
+                const data = await response.json();
+                showResponse(data, response.ok);
+            } catch (error) {
+                showResponse({ message: 'Network error: ' + error.message }, false);
+            }
+        }
+
+        // Session logout
+        async function sessionLogout() {
+            try {
+                const response = await fetch(`${apiBase}/auth/session/logout`, {
+                    method: 'POST',
+                    credentials: 'include' // Important for sessions
+                });
+                
+                const data = await response.json();
+                showResponse(data, response.ok);
+            } catch (error) {
+                showResponse({ message: 'Network error: ' + error.message }, false);
+            }
+        }
+
+        // Show response
+        function showResponse(data, isSuccess) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.style.display = 'block';
+            responseDiv.className = `response ${isSuccess ? 'success' : 'error'}`;
+            responseDiv.innerHTML = `
+                <strong>${isSuccess ? 'Success' : 'Error'}:</strong><br>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        // Test session status on page load
+        window.addEventListener('load', () => {
+            getSessionProfile();
+        });
+    </script>
+</body>
+</html>
