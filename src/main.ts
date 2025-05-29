@@ -9,6 +9,10 @@ import * as passport from 'passport';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalFilters(new GlobalHttpExceptionFilter());
+  
+  app.enableCors();
 
   // Configure session middleware
   app.use(
