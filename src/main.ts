@@ -20,11 +20,10 @@ async function bootstrap() {
     
     // Disable X-Powered-By header for security
     app.getHttpAdapter().getInstance().disable('x-powered-by');
-    
-    // Enable CORS for Railway deployment
+      // Enable CORS for Railway deployment
     app.enableCors({
       origin: process.env.NODE_ENV === 'production' 
-        ? ['https://*.railway.app', 'https://*.up.railway.app'] 
+        ? true // Allow all origins in production for now
         : true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -55,21 +54,22 @@ async function bootstrap() {
     whitelist: true, 
     forbidNonWhitelisted: true 
   }));
-  app.useGlobalFilters(new GlobalHttpExceptionFilter());
-    // Serve static files
+  app.useGlobalFilters(new GlobalHttpExceptionFilter());  // Serve static files
   app.useStaticAssets(join(__dirname, '..', 'public'));
   
-  // Set global prefix for API
-  app.setGlobalPrefix('api', { exclude: ['health', '/'] });
-    const port = process.env.PORT || 3000;
-  const host = '0.0.0.0'; // Always bind to all interfaces for Railway
+  // Set global prefix for API (exclude health check and root)
+  app.setGlobalPrefix('api', { exclude: ['health', '/', 'api/health'] });
   
-  await app.listen(port, host);
+  const port = process.env.PORT || 3000;
+  const host = '0.0.0.0'; // Always bind to all interfaces for Railway
+    await app.listen(port, host);
   console.log(`🚀 Application is running on: http://${host}:${port}`);
   console.log(`🔗 Health check available at: http://${host}:${port}/health`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'External' : 'Local'}`);
   } catch (error) {
     console.error('❌ Error starting application:', error);
+    console.error('❌ Stack trace:', error.stack);
     process.exit(1);
   }
 }
