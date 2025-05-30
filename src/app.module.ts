@@ -18,19 +18,16 @@ import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
+    ConfigModule.forRoot({ isGlobal: true }),    TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL || undefined,
-      host: process.env.DATABASE_URL ? undefined : process.env.DB_HOST,
-      port: process.env.DATABASE_URL ? undefined : parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DATABASE_URL ? undefined : process.env.DB_USER,
-      password: process.env.DATABASE_URL ? undefined : process.env.DB_PASS,
-      database: process.env.DATABASE_URL ? undefined : process.env.DB_NAME,
+      url: process.env.DATABASE_URL,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.NODE_ENV !== 'production', // Only in development
-      ssl:{ rejectUnauthorized: false } ,
       logging: process.env.NODE_ENV === 'development',
+      retryAttempts: 5,
+      retryDelay: 3000,
+      autoLoadEntities: true,
+      ssl: { rejectUnauthorized: false },
     }),
     AuthModule,
     UsersModule,

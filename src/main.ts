@@ -8,14 +8,25 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
-  // Enable CORS for Railway deployment
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
-
+  try {
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      logger: process.env.NODE_ENV === 'production' 
+        ? ['error', 'warn', 'log'] 
+        : ['error', 'warn', 'log', 'debug', 'verbose'],
+    });
+    
+    // Trust proxy for Railway
+    app.set('trust proxy', 1);
+    
+    // Enable CORS for Railway deployment
+    app.enableCors({
+      origin: process.env.NODE_ENV === 'production' 
+        ? ['https://*.railway.app', 'https://*.up.railway.app'] 
+        : true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    });
   // Configure session middleware
   app.use(
     session({
@@ -26,6 +37,7 @@ async function bootstrap() {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       },
     }),
   );
@@ -41,15 +53,25 @@ async function bootstrap() {
     forbidNonWhitelisted: true 
   }));
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
-  
-  // Serve static files
+    // Serve static files
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0'); // Important: bind to all interfaces for Railway
-  console.log(`🚀 Application is running on port: ${port}`);
+  
+  // Set global prefix for API
+  app.setGlobalPrefix('api', { exclude: ['health', '/'] });
+    const port = process.env.PORT || 3000;
+  const host = '0.0.0.0'; // Always bind to all interfaces for Railway
+  
+  await app.listen(port, host);
+  console.log(`🚀 Application is running on: http://${host}:${port}`);
+  console.log(`🔗 Health check available at: http://${host}:${port}/health`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  } catch (error) {
+    console.error('❌ Error starting application:', error);
+    process.exit(1);
+  }
 }
 
 bootstrap().catch((error) => {
-  console.error('Error starting application:', error);
+  console.error('💥 Critical error during bootstrap:', error);
   process.exit(1);
 });
