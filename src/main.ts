@@ -58,11 +58,11 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public'));
   
   // Set global prefix for API (exclude health check and root)
-  app.setGlobalPrefix('api', { exclude: ['health', '/', 'api/health'] });
-  
-  const port = process.env.PORT || 3000;
+    app.setGlobalPrefix('api', { exclude: ['/', 'api'] });
+  const port = parseInt(process.env.PORT || '3000', 10);
   const host = '0.0.0.0'; // Always bind to all interfaces for Railway
-    await app.listen(port, host);
+  
+  await app.listen(port, host);
   console.log(`🚀 Application is running on: http://${host}:${port}`);
   console.log(`🔗 Health check available at: http://${host}:${port}/health`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
