@@ -15,8 +15,11 @@ async function bootstrap() {
         : ['error', 'warn', 'log', 'debug', 'verbose'],
     });
     
-    // Trust proxy for Railway
+    // Trust proxy for Railway (important for health checks)
     app.set('trust proxy', 1);
+    
+    // Disable X-Powered-By header for security
+    app.getHttpAdapter().getInstance().disable('x-powered-by');
     
     // Enable CORS for Railway deployment
     app.enableCors({
