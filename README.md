@@ -34,7 +34,7 @@ A comprehensive e-commerce backend built with NestJS, TypeScript, and PostgreSQL
 - **Language**: TypeScript
 - **Database**: PostgreSQL
 - **ORM**: TypeORM
-- **Authentication**: JWT (JSON Web Tokens)
+- **Authentication**: JWT (JSON Web Tokens) + Session-based
 - **Validation**: class-validator
 - **File Upload**: Multer
 - **Environment**: dotenv
@@ -68,6 +68,7 @@ DB_NAME=ecommerce_db
 
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
+SESSION_SECRET=your-session-secret-key
 ```
 
 5. Start the application:
@@ -235,3 +236,7 @@ The application uses JWT-based authentication with role-based access control:
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+---
+
+*Proyecto ecommerce - Programación 3*
