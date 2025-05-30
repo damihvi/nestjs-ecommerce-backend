@@ -29,7 +29,7 @@ import { InventoryModule } from './inventory/inventory.module';
       database: process.env.DATABASE_URL ? undefined : process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.NODE_ENV !== 'production', // Only in development
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl:{ rejectUnauthorized: false } ,
       logging: process.env.NODE_ENV === 'development',
     }),
     AuthModule,
