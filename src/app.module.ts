@@ -30,7 +30,8 @@ import { InventoryModule } from './inventory/inventory.module';
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       retryAttempts: 10,
-      retryDelay: 5000,      autoLoadEntities: true,
+      retryDelay: 5000,
+      autoLoadEntities: true,
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
       extra: {
         max: 10,
