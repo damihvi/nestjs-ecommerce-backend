@@ -59,7 +59,7 @@ async function bootstrap() {
   
   // Set global prefix for API (exclude health check and root)
     app.setGlobalPrefix('api', { exclude: ['/', 'health'] });
-  const port = parseInt(process.env.PORT || '3010', 10);
+  const port = parseInt(process.env.PORT || '3101', 10);
   const host = '0.0.0.0'; // Always bind to all interfaces for Railway
   
   await app.listen(port, host);
