@@ -19,7 +19,7 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         source: "."
-        target: "/root/herrera_daminan/nestjs-ecommerce-backend"
+        target: "/root/herrera_damian/nestjs-ecommerce-backend"
 
     - name: Run deploy commands on VPS
       uses: appleboy/ssh-action@v1.0.3
@@ -28,7 +28,7 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         script: |
-          cd /root/herrera_daminan/nestjs-ecommerce-backend
+          cd /root/herrera_damian/nestjs-ecommerce-backend
           
           # Matar el proceso que está usando el puerto 3010
           echo "Matar proceso en el puerto 3010..."
