@@ -8,7 +8,11 @@ import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, OrderItem, Product, User])],
+  imports: [
+    // PostgreSQL
+    TypeOrmModule.forFeature([Order, OrderItem, Product, User]),
+    // MongoDB schemas removed - using PostgreSQL only for orders
+  ],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],

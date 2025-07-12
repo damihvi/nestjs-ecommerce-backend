@@ -20,7 +20,13 @@ export class Product {
   stock: number;
 
   @Column({ nullable: true })
-  image: string;
+  image?: string;
+
+  @Column('simple-array', { nullable: true })
+  images: string[];
+
+  @Column('text', { nullable: true })
+  imageDetails: string; // JSON string for image metadata
 
   @Column({ default: true })
   isActive: boolean;
@@ -36,6 +42,7 @@ export class Product {
 
   @Column({ nullable: true })
   dimensions: string; // e.g., "10x20x30 cm"
+
   @ManyToOne(() => Category, { eager: true })
   category: Category;
 

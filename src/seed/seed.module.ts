@@ -12,6 +12,7 @@ import { ProductsService } from '../products/products.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Category, Product]),
+    // MongoDB schemas removed - using PostgreSQL only for seed data
   ],
   controllers: [SeedController],
   providers: [SeedService, UsersService, CategoriesService, ProductsService],

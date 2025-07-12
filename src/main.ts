@@ -58,7 +58,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public'));
   
   // Set global prefix for API (exclude health check and root)
-    app.setGlobalPrefix('api', { exclude: ['/', 'api'] });
+    app.setGlobalPrefix('api', { exclude: ['/', 'health'] });
   const port = parseInt(process.env.PORT || '3010', 10);
   const host = '0.0.0.0'; // Always bind to all interfaces for Railway
   

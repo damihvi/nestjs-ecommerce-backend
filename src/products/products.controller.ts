@@ -12,14 +12,16 @@ import {
   BadRequestException,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UploadImageDto } from './dto/upload-image.dto';
 import { Product } from './product.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { SuccessResponseDto } from 'src/common/dto/response.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
 @Controller('products')
@@ -129,18 +131,90 @@ export class ProductsController {
   }))
   async uploadImage(
     @Param('id') id: string, 
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
+    @Body() imageData: UploadImageDto
   ): Promise<SuccessResponseDto<Product>> {
     if (!file) throw new BadRequestException('Product image is required');
     
-    const product = await this.productsService.update(id, { image: file.filename });
+    const product = await this.productsService.addImage(id, file, imageData);
     if (!product) throw new NotFoundException('Product not found');
-    return new SuccessResponseDto('Product image updated successfully', product);
+    return new SuccessResponseDto('Product image added successfully', product);
+  }
+
+  @HttpPost(':id/images')
+  @UseInterceptors(FilesInterceptor('images', 10, {
+    storage: diskStorage({
+      destination: './public/products',
+      filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return cb(new BadRequestException('Only JPG, JPEG, PNG, or WEBP files are allowed'), false);
+      }
+      cb(null, true);
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit per file
+    }
+  }))
+  async uploadMultipleImages(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[]
+  ): Promise<SuccessResponseDto<Product>> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('At least one image is required');
+    }
+    
+    const product = await this.productsService.addMultipleImages(id, files);
+    if (!product) throw new NotFoundException('Product not found');
+    return new SuccessResponseDto('Product images added successfully', product);
+  }
+
+  @Delete(':id/image/:imageIndex')
+  async removeImage(
+    @Param('id') id: string,
+    @Param('imageIndex') imageIndex: string
+  ): Promise<SuccessResponseDto<Product>> {
+    const index = parseInt(imageIndex);
+    if (isNaN(index) || index < 0) {
+      throw new BadRequestException('Invalid image index');
+    }
+    
+    const product = await this.productsService.removeImage(id, index);
+    if (!product) throw new NotFoundException('Product or image not found');
+    return new SuccessResponseDto('Product image removed successfully', product);
+  }
+
+  @Put(':id/image/:imageIndex/primary')
+  async setPrimaryImage(
+    @Param('id') id: string,
+    @Param('imageIndex') imageIndex: string
+  ): Promise<SuccessResponseDto<Product>> {
+    const index = parseInt(imageIndex);
+    if (isNaN(index) || index < 0) {
+      throw new BadRequestException('Invalid image index');
+    }
+    
+    const product = await this.productsService.setPrimaryImage(id, index);
+    if (!product) throw new NotFoundException('Product or image not found');
+    return new SuccessResponseDto('Primary image updated successfully', product);
   }
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<SuccessResponseDto<string>> {
     const deleted = await this.productsService.remove(id);
     if (!deleted) throw new NotFoundException('Product not found or could not be deleted');
     return new SuccessResponseDto('Product deleted successfully', id);
+  }
+
+  // Product analytics is now handled by the analytics module
+  @Get(':id/analytics')
+  async getProductAnalytics(@Param('id') id: string): Promise<SuccessResponseDto<any>> {
+    const product = await this.productsService.findOne(id);
+    if (!product) throw new NotFoundException('Product not found');
+    
+    return new SuccessResponseDto('Product data retrieved successfully', {
+      product: product,
+      message: 'For detailed analytics, use the analytics module endpoints'
+    });
   }
 }

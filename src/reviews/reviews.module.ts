@@ -10,7 +10,10 @@ import { Order } from '../orders/order.entity';
 import { OrderItem } from '../orders/order-item.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, ReviewHelpfulness, Product, User, Order, OrderItem])],
+  imports: [
+    TypeOrmModule.forFeature([Review, ReviewHelpfulness, Product, User, Order, OrderItem]),
+    // MongoDB schemas removed - using PostgreSQL only for reviews
+  ],
   controllers: [ReviewsController],
   providers: [ReviewsService],
   exports: [ReviewsService],

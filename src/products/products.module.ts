@@ -6,7 +6,11 @@ import { Product } from './product.entity';
 import { Category } from '../categories/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Category])],
+  imports: [
+    // PostgreSQL
+    TypeOrmModule.forFeature([Product, Category]),
+    // MongoDB schemas removed - using PostgreSQL only for products
+  ],
   controllers: [ProductsController],
   providers: [ProductsService],
   exports: [ProductsService],

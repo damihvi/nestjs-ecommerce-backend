@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CommonModule } from './common/common.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -15,9 +18,17 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { EmailModule } from './email/email.module';
+import { FilesModule } from './files/files.module';
+import { LogsModule } from './logs/logs.module';
 
 @Module({
-  imports: [    ConfigModule.forRoot({ isGlobal: true }),
+  imports: [    
+    ConfigModule.forRoot({ isGlobal: true }),
+    
+    // PostgreSQL Connection
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || undefined,
@@ -39,6 +50,22 @@ import { InventoryModule } from './inventory/inventory.module';
         connectionTimeoutMillis: 20000,
       },
     }),
+    
+    // MongoDB Atlas Connection - For analytics, logs, sessions, and flexible data
+    MongooseModule.forRoot(
+      process.env.MONGODB_URI || 'mongodb+srv://damianherrera:Monchomix@clustermongoute.xtmuqtk.mongodb.net/ecommerce?retryWrites=true&w=majority',
+      {
+        connectionName: 'mongodb',
+        serverApi: { 
+          version: '1', 
+          strict: true, 
+          deprecationErrors: true 
+        },
+        dbName: 'ecommerce',
+      }
+    ),
+    CommonModule,
+    DashboardModule,
     AuthModule,
     UsersModule,
     CategoriesModule,
@@ -51,6 +78,11 @@ import { InventoryModule } from './inventory/inventory.module';
     WishlistsModule,
     CouponsModule,
     InventoryModule,
+    NotificationsModule,
+    AnalyticsModule,
+    EmailModule,
+    FilesModule,
+    LogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

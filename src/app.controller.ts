@@ -11,12 +11,7 @@ export class AppController {
   }
 
   @Get('health')
-  getHealth() {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      port: process.env.PORT || 3000
-    };
+  async getHealth() {
+    return this.appService.getHealthStatus();
   }
 }
