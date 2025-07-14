@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Analytics, AnalyticsDocument } from '../analytics/analytics.schema';
-import { UserSession, UserSessionDocument } from '../auth/user-session.schema';
-import { Log, LogDocument } from '../logs/log.schema';
+import { UserSession, UserSessionDocument } from '../schemas/user-session.schema';
 
 @Injectable()
 export class MongoService {
@@ -13,25 +12,20 @@ export class MongoService {
     
     @InjectModel(UserSession.name, 'mongodb')
     private userSessionModel: Model<UserSessionDocument>,
-    
-    @InjectModel(Log.name, 'mongodb')
-    private logModel: Model<LogDocument>,
   ) {}
 
   // Probar conexión a MongoDB
   async testConnection() {
     try {
       // Probar cada colección
-      const [analyticsTest, sessionTest, logTest] = await Promise.all([
+      const [analyticsTest, sessionTest] = await Promise.all([
         this.analyticsModel.findOne().exec(),
         this.userSessionModel.findOne().exec(),
-        this.logModel.findOne().exec(),
       ]);
 
       const counts = await Promise.all([
         this.analyticsModel.countDocuments().exec(),
         this.userSessionModel.countDocuments().exec(),
-        this.logModel.countDocuments().exec(),
       ]);
 
       return {
@@ -39,7 +33,6 @@ export class MongoService {
         collections: {
           analytics: { count: counts[0], hasData: !!analyticsTest },
           sessions: { count: counts[1], hasData: !!sessionTest },
-          logs: { count: counts[2], hasData: !!logTest },
         },
         timestamp: new Date()
       };
@@ -60,28 +53,19 @@ export class MongoService {
     return session.save();
   }
 
-  // Crear log
-  async createLog(data: Partial<Log>) {
-    const log = new this.logModel(data);
-    return log.save();
-  }
-
   // Obtener todas las colecciones (para verificar)
   async getAllCollections() {
-    const [analytics, sessions, logs] = await Promise.all([
+    const [analytics, sessions] = await Promise.all([
       this.analyticsModel.find().limit(10).exec(),
       this.userSessionModel.find().limit(10).exec(),
-      this.logModel.find().limit(10).exec(),
     ]);
 
     return {
       analytics: analytics.length,
       sessions: sessions.length,
-      logs: logs.length,
       data: {
         analytics,
         sessions,
-        logs,
       }
     };
   }
@@ -109,16 +93,6 @@ export class MongoService {
       pageViews: 1,
       visitedPages: ['/home'],
       isActive: true,
-    });
-
-    // Log de ejemplo
-    await this.createLog({
-      level: 'info',
-      message: 'User logged in successfully',
-      metadata: { userId: 'user123', timestamp: new Date() },
-      userId: 'user123',
-      action: 'login',
-      ip: '192.168.1.1',
     });
 
     return { message: 'Datos de ejemplo insertados correctamente' };

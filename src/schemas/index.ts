@@ -2,9 +2,8 @@
 // Esta carpeta contiene todos los schemas que se suben a MongoDB Atlas
 // Esquemas complementarios que NO duplican datos de PostgreSQL
 
-// Analytics & Logging (MongoDB específico)
+// Analytics (MongoDB específico)
 export { Analytics, AnalyticsSchema, AnalyticsDocument } from './analytics.schema';
-export { Log, LogSchema, LogDocument } from './log.schema';
 
 // User Sessions (MongoDB específico)
 export { UserSession, UserSessionSchema, UserSessionDocument } from './user-session.schema';

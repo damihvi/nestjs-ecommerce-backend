@@ -22,7 +22,6 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { EmailModule } from './email/email.module';
 import { FilesModule } from './files/files.module';
-import { LogsModule } from './logs/logs.module';
 
 @Module({
   imports: [    
@@ -82,7 +81,6 @@ import { LogsModule } from './logs/logs.module';
     AnalyticsModule,
     EmailModule,
     FilesModule,
-    LogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

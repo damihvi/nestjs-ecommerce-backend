@@ -20,20 +20,7 @@ Esta carpeta contiene todos los schemas de MongoDB para el backend de ecommerce.
 - `revenue`, `quantity`: Datos de ventas
 - `timestamp`: Marca de tiempo
 
-### 2. **Logs** (`log.schema.ts`)
-**Colección**: `logs`
-**Propósito**: Sistema de logging centralizado
-
-**Campos principales**:
-- `level`: Nivel de log (error, warn, info, debug)
-- `message`: Mensaje del log
-- `metadata`: Datos adicionales
-- `userId`: Usuario asociado
-- `action`: Acción realizada
-- `ip`, `userAgent`: Datos de contexto
-- `timestamp`: Marca de tiempo
-
-### 3. **User Sessions** (`user-session.schema.ts`)
+### 2. **User Sessions** (`user-session.schema.ts`)
 **Colección**: `user_sessions`
 **Propósito**: Tracking de sesiones de usuario
 
@@ -51,7 +38,7 @@ Esta carpeta contiene todos los schemas de MongoDB para el backend de ecommerce.
 - `visitedPages`: Array de páginas visitadas
 - `metadata`: Datos adicionales
 
-### 4. **Users** (`user.schema.ts`)
+### 3. **Users** (`user.schema.ts`)
 **Colección**: `users`
 **Propósito**: Datos de usuarios (réplica de PostgreSQL + analytics)
 
@@ -67,7 +54,7 @@ Esta carpeta contiene todos los schemas de MongoDB para el backend de ecommerce.
 - `preferences`: Preferencias del usuario
 - `analytics`: Datos analíticos adicionales
 
-### 5. **Products** (`product.schema.ts`)
+### 4. **Products** (`product.schema.ts`)
 **Colección**: `products`
 **Propósito**: Productos con datos analíticos avanzados
 
@@ -86,7 +73,7 @@ Esta carpeta contiene todos los schemas de MongoDB para el backend de ecommerce.
 - `viewHistory`: Historial de visualizaciones
 - `analytics`: Datos analíticos adicionales
 
-### 6. **Orders** (`order.schema.ts`)
+### 5. **Orders** (`order.schema.ts`)
 **Colección**: `orders`
 **Propósito**: Órdenes con analytics de procesamiento
 

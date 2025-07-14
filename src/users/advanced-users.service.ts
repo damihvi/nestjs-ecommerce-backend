@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRole } from './user.entity';
+import { User } from './user.entity';
+import { UserRole } from '../common/types/roles';
 import { Role, Permission, ROLE_PERMISSIONS } from '../common/guards/permissions.guard';
 import * as bcrypt from 'bcrypt';
 
@@ -9,14 +10,13 @@ import * as bcrypt from 'bcrypt';
 const ROLE_MAPPING = {
   [UserRole.ADMIN]: Role.ADMIN,
   [UserRole.CUSTOMER]: Role.CUSTOMER,
-  [UserRole.SELLER]: Role.MANAGER, // Seller se mapea a Manager
+  [UserRole.SELLER]: Role.SELLER,
 };
 
 const REVERSE_ROLE_MAPPING = {
   [Role.ADMIN]: UserRole.ADMIN,
   [Role.CUSTOMER]: UserRole.CUSTOMER,
-  [Role.MANAGER]: UserRole.SELLER,
-  [Role.EMPLOYEE]: UserRole.SELLER, // Employee se mapea a Seller
+  [Role.SELLER]: UserRole.SELLER,
 };
 
 export interface UserWithPermissions extends User {

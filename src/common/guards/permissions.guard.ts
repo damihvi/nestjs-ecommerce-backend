@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
+import { UserRole } from '../types/roles';
 
 export enum Permission {
   // Productos
@@ -45,8 +46,7 @@ export enum Permission {
 
 export enum Role {
   ADMIN = 'admin',
-  MANAGER = 'manager',
-  EMPLOYEE = 'employee',
+  SELLER = 'seller',
   CUSTOMER = 'customer',
 }
 
@@ -77,8 +77,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.COUPONS_UPDATE,
     Permission.COUPONS_DELETE,
   ],
-  [Role.MANAGER]: [
-    // Gestión de productos e inventario
+  [Role.SELLER]: [
+    // Gestión de productos e inventario (como vendedor)
     Permission.PRODUCTS_CREATE,
     Permission.PRODUCTS_READ,
     Permission.PRODUCTS_UPDATE,
@@ -93,14 +93,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.CATEGORIES_UPDATE,
     Permission.COUPONS_CREATE,
     Permission.COUPONS_UPDATE,
-  ],
-  [Role.EMPLOYEE]: [
-    // Solo lectura y operaciones básicas
-    Permission.PRODUCTS_READ,
-    Permission.PRODUCTS_UPDATE,
-    Permission.INVENTORY_READ,
-    Permission.INVENTORY_UPDATE,
-    Permission.SALES_READ,
   ],
   [Role.CUSTOMER]: [
     // Solo lectura de productos

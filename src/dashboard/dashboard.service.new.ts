@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Analytics, AnalyticsDocument } from '../schemas/analytics.schema';
 import { UserSession, UserSessionDocument } from '../schemas/user-session.schema';
-import { Log, LogDocument } from '../schemas/log.schema';
 
 @Injectable()
 export class DashboardService {
@@ -12,8 +11,6 @@ export class DashboardService {
     private analyticsModel: Model<AnalyticsDocument>,
     @InjectModel(UserSession.name, 'mongodb')
     private userSessionModel: Model<UserSessionDocument>,
-    @InjectModel(Log.name, 'mongodb')
-    private logModel: Model<LogDocument>,
   ) {}
 
   async getDashboardStats() {
@@ -26,7 +23,6 @@ export class DashboardService {
       const [
         totalAnalytics,
         activeSessions,
-        recentLogs,
         todayAnalytics,
         yesterdayAnalytics,
         weeklyAnalytics,
@@ -34,7 +30,6 @@ export class DashboardService {
       ] = await Promise.all([
         this.analyticsModel.countDocuments(),
         this.userSessionModel.countDocuments({ isActive: true }),
-        this.logModel.countDocuments({ timestamp: { $gte: yesterday } }),
         this.analyticsModel.countDocuments({ timestamp: { $gte: today } }),
         this.analyticsModel.countDocuments({ 
           timestamp: { $gte: yesterday, $lt: today } 
@@ -46,7 +41,6 @@ export class DashboardService {
       return {
         totalAnalytics,
         activeSessions,
-        recentLogs,
         todayAnalytics,
         yesterdayAnalytics,
         weeklyAnalytics,
@@ -87,20 +81,6 @@ export class DashboardService {
       return sessions;
     } catch (error) {
       console.error('Error getting active sessions:', error);
-      throw error;
-    }
-  }
-
-  async getRecentLogs(limit: number = 50) {
-    try {
-      const logs = await this.logModel
-        .find({})
-        .sort({ timestamp: -1 })
-        .limit(limit);
-      
-      return logs;
-    } catch (error) {
-      console.error('Error getting recent logs:', error);
       throw error;
     }
   }

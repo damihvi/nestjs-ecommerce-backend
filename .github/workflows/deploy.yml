@@ -30,9 +30,9 @@ jobs:
         script: |
           cd /root/herrera_damian/nestjs-ecommerce-backend
           
-          # Matar el proceso que está usando el puerto 3101
-          echo "Matar proceso en el puerto 3101..."
-          sudo lsof -t -i:3101 | xargs sudo kill -9  # Mata el proceso que usa el puerto 3101
+          # Matar el proceso que está usando el puerto 3010
+          echo "Matar proceso en el puerto 3010..."
+          sudo lsof -t -i:3010 | xargs sudo kill -9  # Mata el proceso que usa el puerto 3010
           
           # Asegúrate de que el archivo .env se copie correctamente
           echo -e "${{ secrets.ENV_FILE }}" > .env

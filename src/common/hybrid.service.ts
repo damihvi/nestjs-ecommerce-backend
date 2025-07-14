@@ -8,7 +8,6 @@ import { Product } from '../products/product.entity';
 import { Order } from '../orders/order.entity';
 import { Analytics, AnalyticsDocument } from '../schemas/analytics.schema';
 import { UserSession, UserSessionDocument } from '../schemas/user-session.schema';
-import { Log, LogDocument } from '../schemas/log.schema';
 
 @Injectable()
 export class HybridService {
@@ -26,8 +25,6 @@ export class HybridService {
     private analyticsModel: Model<AnalyticsDocument>,
     @InjectModel(UserSession.name, 'mongodb')
     private userSessionModel: Model<UserSessionDocument>,
-    @InjectModel(Log.name, 'mongodb')
-    private logModel: Model<LogDocument>,
   ) {}
 
   // Crear usuario en PostgreSQL y sesión en MongoDB
@@ -50,14 +47,6 @@ export class HybridService {
       });
       await userSession.save();
       
-      // Log de creación
-      await this.logModel.create({
-        level: 'info',
-        message: `User created: ${user.email}`,
-        userId: user.id.toString(),
-        timestamp: new Date()
-      });
-      
       return user;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -79,7 +68,6 @@ export class HybridService {
         Promise.all([
           this.analyticsModel.countDocuments(),
           this.userSessionModel.countDocuments(),
-          this.logModel.countDocuments(),
         ])
       ]);
 
@@ -93,7 +81,6 @@ export class HybridService {
         mongodb: {
           analytics: mongoStats[0],
           sessions: mongoStats[1],
-          logs: mongoStats[2]
         }
       };
     } catch (error) {
@@ -132,17 +119,15 @@ export class HybridService {
   // Obtener usuario completo (PostgreSQL + MongoDB)
   async getUserComplete(userId: string) {
     try {
-      const [pgUser, userSessions, userLogs] = await Promise.all([
+      const [pgUser, userSessions] = await Promise.all([
         this.userRepository.findOne({ where: { id: userId } }),
-        this.userSessionModel.find({ userId: userId }),
-        this.logModel.find({ userId: userId }).limit(10)
+        this.userSessionModel.find({ userId: userId })
       ]);
 
       return {
         success: true,
         user: pgUser,
-        sessions: userSessions,
-        recentLogs: userLogs
+        sessions: userSessions
       };
     } catch (error) {
       return {

@@ -6,9 +6,9 @@ import { MongoService } from './mongo.service';
 import { MongoController } from './mongo.controller';
 import { HybridService } from './hybrid.service';
 import { HybridController } from './hybrid.controller';
+import { RolesController } from './controllers/roles.controller';
 import { Analytics, AnalyticsSchema } from '../schemas/analytics.schema';
 import { UserSession, UserSessionSchema } from '../schemas/user-session.schema';
-import { Log, LogSchema } from '../schemas/log.schema';
 import { User as UserEntity } from '../users/user.entity';
 import { Product as ProductEntity } from '../products/product.entity';
 import { Order as OrderEntity } from '../orders/order.entity';
@@ -25,10 +25,9 @@ import { Order as OrderEntity } from '../orders/order.entity';
     MongooseModule.forFeature([
       { name: Analytics.name, schema: AnalyticsSchema },
       { name: UserSession.name, schema: UserSessionSchema },
-      { name: Log.name, schema: LogSchema },
     ], 'mongodb'),
   ],
-  controllers: [MongoController, HybridController],
+  controllers: [MongoController, HybridController, RolesController],
   providers: [MongoService, HybridService],
   exports: [ConfigModule, MongoService, HybridService],
 })
