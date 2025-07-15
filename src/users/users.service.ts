@@ -31,14 +31,43 @@ export class UsersService {
 
   async findAll(options: IPaginationOptions, isActive?: boolean): Promise<Pagination<User> | null> {
     try {
-      const query = this.userRepo.createQueryBuilder('user');
-      if (isActive !== undefined) {
-        query.where('user.isActive = :isActive', { isActive });
-      }
-      return await paginate<User>(query, options);
+      const page = Number(options.page) || 1;
+      const limit = Number(options.limit) || 10;
+      const skip = (page - 1) * limit;
+      
+      // Usar find simple para debug
+      const [items, total] = await this.userRepo.findAndCount({
+        order: { createdAt: 'DESC' },
+        skip: skip,
+        take: limit
+      });
+      
+      return {
+        items,
+        meta: {
+          totalItems: total,
+          itemCount: items.length,
+          itemsPerPage: limit,
+          totalPages: Math.ceil(total / limit),
+          currentPage: page
+        }
+      };
     } catch (err) {
       console.error('Error retrieving users:', err);
       return null;
+    }
+  }
+
+  async findAllDebug(): Promise<User[]> {
+    try {
+      return await this.userRepo.find({
+        order: {
+          createdAt: 'DESC'
+        }
+      });
+    } catch (err) {
+      console.error('Error retrieving debug users:', err);
+      return [];
     }
   }
 
@@ -145,6 +174,15 @@ export class UsersService {
     } catch (err) {
       console.error('Error updating user profile:', err);
       return null;
+    }
+  }
+
+  async countUsers(): Promise<number> {
+    try {
+      return await this.userRepo.count();
+    } catch (err) {
+      console.error('Error counting users:', err);
+      return 0;
     }
   }
 }

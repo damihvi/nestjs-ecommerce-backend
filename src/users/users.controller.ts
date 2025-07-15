@@ -68,10 +68,40 @@ export class UsersController {
       if (isActive !== undefined && isActive !== 'true' && isActive !== 'false') {
         throw new BadRequestException('Invalid value for "isActive". Use "true" or "false".');
       }
-      const result = await this.usersService.findAll({ page, limit }, isActive === 'true');
-      if (!result) throw new InternalServerErrorException('Could not retrieve users');
+      
+      // Usar la MISMA lógica exacta que el endpoint público
+      const result = await this.usersService.findAll({ page: 1, limit: 100 });
+      
+      if (!result) {
+        console.error('findAll returned null');
+        throw new InternalServerErrorException('Could not retrieve users');
+      }
+      
+      console.log('findAll result:', { 
+        itemsLength: result.items?.length, 
+        totalItems: result.meta?.totalItems 
+      });
+      
+      // Aplicar paginación manual a los resultados
+      const pageNum = Number(page) || 1;
+      const limitNum = Number(limit) || 10;
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      
+      const paginatedItems = result.items.slice(startIndex, endIndex);
+      
+      const response = {
+        items: paginatedItems,
+        meta: {
+          totalItems: result.items.length,
+          itemCount: paginatedItems.length,
+          itemsPerPage: limitNum,
+          totalPages: Math.ceil(result.items.length / limitNum),
+          currentPage: pageNum
+        }
+      };
 
-      return new SuccessResponseDto('Users retrieved successfully', result);
+      return new SuccessResponseDto('Users retrieved successfully', response);
     } catch (error) {
       console.error('Error retrieving users:', error);
       return {
