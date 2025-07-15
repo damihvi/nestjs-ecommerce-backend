@@ -30,6 +30,13 @@ export class UsersController {
     return new SuccessResponseDto('User created successfully', user);
   }
 
+  @Post('/admin-create')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async adminCreateUser(@Body() dto: CreateUserDto, @GetUser() currentUser: User) {
+    const user = await this.usersService.create(dto);
+    return new SuccessResponseDto('User created by admin successfully', user);
+  }
+
   @Get()
   @UseGuards(PermissionsGuard)
   @RequirePermissions(Permission.USERS_READ)
