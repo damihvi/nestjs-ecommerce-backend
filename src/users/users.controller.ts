@@ -36,11 +36,19 @@ export class UsersController {
     return new SuccessResponseDto('User created by admin successfully', user);
   }
 
-  @Post('/public-create')
-  async publicCreateUser(@Body() dto: CreateUserDto) {
-    // Solo para testing - quitar en producción
-    const user = await this.usersService.create(dto);
-    return new SuccessResponseDto('User created (public endpoint)', user);
+  @Post('public-create')
+  async createPublicUser(@Body() dto: CreateUserDto) {
+    try {
+      const user = await this.usersService.create(dto);
+      return new SuccessResponseDto('User created successfully (public)', user);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return {
+        success: false,
+        message: 'Error creating user: ' + error.message,
+        data: null
+      };
+    }
   }
 
   @Get()
