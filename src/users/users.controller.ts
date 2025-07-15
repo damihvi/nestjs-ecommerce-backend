@@ -60,6 +60,21 @@ export class UsersController {
     return new SuccessResponseDto('Users retrieved successfully', result);
   }
 
+  @Get('public-list')
+  async getPublicUsersList() {
+    try {
+      const users = await this.usersService.findAll({ page: 1, limit: 100 });
+      return new SuccessResponseDto('Users retrieved successfully (public)', users);
+    } catch (error) {
+      console.error('Error retrieving users:', error);
+      return {
+        success: false,
+        message: 'Error retrieving users',
+        data: null
+      };
+    }
+  }
+
   @Get(':id')
   @UseGuards(PermissionsGuard)
   @RequirePermissions(Permission.USERS_READ)
