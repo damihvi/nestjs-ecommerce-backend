@@ -93,4 +93,14 @@ export class UsersController {
     if (!user) throw new NotFoundException('User not found');
     return new SuccessResponseDto('Profile image updated', user);
   }
+
+  @Get('/test-admin')
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_READ)
+  async testAdmin(@GetUser() currentUser: User) {
+    return new SuccessResponseDto('Admin test successful', {
+      user: currentUser,
+      permissions: ['users:read', 'users:create', 'users:update', 'users:delete']
+    });
+  }
 }
