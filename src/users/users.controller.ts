@@ -22,11 +22,18 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  @UseGuards(PermissionsGuard)
-  @RequirePermissions(Permission.USERS_CREATE)
-  async create(@Body() dto: CreateUserDto, @GetUser() currentUser: User) {
-    const user = await this.usersService.create(dto);
-    return new SuccessResponseDto('User created successfully', user);
+  async create(@Body() dto: CreateUserDto) {
+    try {
+      const user = await this.usersService.create(dto);
+      return new SuccessResponseDto('User created successfully', user);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return {
+        success: false,
+        message: 'Error creating user: ' + error.message,
+        data: null
+      };
+    }
   }
 
   @Post('/admin-create')
@@ -52,20 +59,27 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(PermissionsGuard)
-  @RequirePermissions(Permission.USERS_READ)
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
     @Query('isActive') isActive?: string,
-  ): Promise<SuccessResponseDto<Pagination<User>>> {
-    if (isActive !== undefined && isActive !== 'true' && isActive !== 'false') {
-      throw new BadRequestException('Invalid value for "isActive". Use "true" or "false".');
-    }
-    const result = await this.usersService.findAll({ page, limit }, isActive === 'true');
-    if (!result) throw new InternalServerErrorException('Could not retrieve users');
+  ): Promise<any> {
+    try {
+      if (isActive !== undefined && isActive !== 'true' && isActive !== 'false') {
+        throw new BadRequestException('Invalid value for "isActive". Use "true" or "false".');
+      }
+      const result = await this.usersService.findAll({ page, limit }, isActive === 'true');
+      if (!result) throw new InternalServerErrorException('Could not retrieve users');
 
-    return new SuccessResponseDto('Users retrieved successfully', result);
+      return new SuccessResponseDto('Users retrieved successfully', result);
+    } catch (error) {
+      console.error('Error retrieving users:', error);
+      return {
+        success: false,
+        message: 'Error retrieving users',
+        data: null
+      };
+    }
   }
 
   @Get('public-list')
