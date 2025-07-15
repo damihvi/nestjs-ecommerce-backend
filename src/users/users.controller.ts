@@ -117,4 +117,17 @@ export class UsersController {
       permissions: ['users:read', 'users:create', 'users:update', 'users:delete']
     });
   }
+
+  @Get('/admin-info')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async getAdminInfo(@GetUser() currentUser: User) {
+    return new SuccessResponseDto('Admin info retrieved', {
+      id: currentUser.id,
+      username: currentUser.username,
+      role: currentUser.role,
+      canCreateUsers: true,
+      canModifyUsers: true,
+      canDeleteUsers: true
+    });
+  }
 }
