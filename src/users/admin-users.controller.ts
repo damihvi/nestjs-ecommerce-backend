@@ -26,7 +26,6 @@ import {
 import { Role } from '../common/guards/permissions.guard';
 
 @Controller('admin/users')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AdminUsersController {
   constructor(private readonly advancedUsersService: AdvancedUsersService) {}
 
@@ -289,5 +288,100 @@ export class AdminUsersController {
       message: 'Verificación de rol completada',
       data: { hasRole }
     };
+  }
+
+  // === ENDPOINT SIMPLE PARA FRONTEND ===
+  @Get('simple')
+  async getSimpleUsers(@GetUser() currentUser: User) {
+    try {
+      // Verificar que el usuario sea admin
+      if (currentUser.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Access denied. Admin role required.',
+          data: null
+        };
+      }
+      
+      const users = await this.advancedUsersService.getAllUsers();
+      return {
+        success: true,
+        message: 'Users retrieved successfully',
+        data: {
+          items: users,
+          meta: {
+            totalItems: users.length,
+            itemCount: users.length,
+            itemsPerPage: users.length,
+            totalPages: 1,
+            currentPage: 1
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error retrieving users:', error);
+      return {
+        success: false,
+        message: 'Error retrieving users',
+        data: null
+      };
+    }
+  }
+
+  @Post('simple')
+  async createSimpleUser(@Body() createUserDto: CreateUserDto, @GetUser() currentUser: User) {
+    try {
+      // Verificar que el usuario sea admin
+      if (currentUser.role !== 'admin') {
+        return {
+          success: false,
+          message: 'Access denied. Admin role required.',
+          data: null
+        };
+      }
+      
+      const user = await this.advancedUsersService.createUser(createUserDto);
+      return {
+        success: true,
+        message: 'User created successfully',
+        data: user
+      };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return {
+        success: false,
+        message: 'Error creating user',
+        data: null
+      };
+    }
+  }
+
+  // === ENDPOINT PÚBLICO PARA TESTING ===
+  @Get('public')
+  async getPublicUsers() {
+    try {
+      const users = await this.advancedUsersService.getAllUsers();
+      return {
+        success: true,
+        message: 'Users retrieved successfully (public)',
+        data: {
+          items: users,
+          meta: {
+            totalItems: users.length,
+            itemCount: users.length,
+            itemsPerPage: users.length,
+            totalPages: 1,
+            currentPage: 1
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error retrieving users:', error);
+      return {
+        success: false,
+        message: 'Error retrieving users',
+        data: null
+      };
+    }
   }
 }

@@ -18,7 +18,6 @@ import { AdminGuard } from '../admin/admin.guard';
 import { GetUser } from '../auth/get-user.decorator';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 

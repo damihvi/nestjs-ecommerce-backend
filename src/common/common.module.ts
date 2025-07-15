@@ -7,6 +7,7 @@ import { MongoController } from './mongo.controller';
 import { HybridService } from './hybrid.service';
 import { HybridController } from './hybrid.controller';
 import { RolesController } from './controllers/roles.controller';
+import { HealthController } from './controllers/health.controller';
 import { Analytics, AnalyticsSchema } from '../schemas/analytics.schema';
 import { UserSession, UserSessionSchema } from '../schemas/user-session.schema';
 import { User as UserEntity } from '../users/user.entity';
@@ -27,7 +28,7 @@ import { Order as OrderEntity } from '../orders/order.entity';
       { name: UserSession.name, schema: UserSessionSchema },
     ], 'mongodb'),
   ],
-  controllers: [MongoController, HybridController, RolesController],
+  controllers: [MongoController, HybridController, RolesController, HealthController],
   providers: [MongoService, HybridService],
   exports: [ConfigModule, MongoService, HybridService],
 })
