@@ -21,6 +21,7 @@ export enum Permission {
   ANALYTICS_ADVANCED = 'analytics:advanced',
   
   // Usuarios
+  USERS_CREATE = 'users:create',
   USERS_READ = 'users:read',
   USERS_UPDATE = 'users:update',
   USERS_DELETE = 'users:delete',
@@ -63,6 +64,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.INVENTORY_REPORTS,
     Permission.ANALYTICS_VIEW,
     Permission.ANALYTICS_ADVANCED,
+    Permission.USERS_CREATE,
     Permission.USERS_READ,
     Permission.USERS_UPDATE,
     Permission.USERS_DELETE,

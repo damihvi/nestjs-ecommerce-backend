@@ -22,13 +22,15 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 // Permisos básicos por rol para el frontend
 export const ROLE_CAPABILITIES: Record<UserRole, string[]> = {
   [UserRole.ADMIN]: [
+    'create_users',
     'manage_users',
     'manage_products',
     'manage_categories',
     'manage_orders',
     'view_analytics',
     'manage_coupons',
-    'system_config'
+    'system_config',
+    'delete_users'
   ],
   [UserRole.SELLER]: [
     'manage_products',

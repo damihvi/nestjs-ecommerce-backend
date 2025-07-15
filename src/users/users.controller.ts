@@ -2,7 +2,7 @@ import {
   Controller, Get, Post, Put, Delete, Body, Param,
   Query, BadRequestException, NotFoundException,
   UseInterceptors, UploadedFile,
-  InternalServerErrorException
+  InternalServerErrorException, UseGuards
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,18 +12,27 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PermissionsGuard, RequirePermissions, Permission } from '../common/guards/permissions.guard';
+import { AdminGuard } from '../admin/admin.guard';
+import { GetUser } from '../auth/get-user.decorator';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  async create(@Body() dto: CreateUserDto) {
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_CREATE)
+  async create(@Body() dto: CreateUserDto, @GetUser() currentUser: User) {
     const user = await this.usersService.create(dto);
     return new SuccessResponseDto('User created successfully', user);
   }
 
   @Get()
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_READ)
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
@@ -39,6 +48,8 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_READ)
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
     if (!user) throw new NotFoundException('User not found');
@@ -46,14 +57,18 @@ export class UsersController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_UPDATE)
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto, @GetUser() currentUser: User) {
     const user = await this.usersService.update(id, dto);
     if (!user) throw new NotFoundException('User not found');
     return new SuccessResponseDto('User updated successfully', user);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions(Permission.USERS_DELETE)
+  async remove(@Param('id') id: string, @GetUser() currentUser: User) {
     const user = await this.usersService.remove(id);
     if (!user) throw new NotFoundException('User not found');
     return new SuccessResponseDto('User deleted successfully', user);
