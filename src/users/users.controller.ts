@@ -37,6 +37,13 @@ export class UsersController {
     return new SuccessResponseDto('User created by admin successfully', user);
   }
 
+  @Post('/public-create')
+  async publicCreateUser(@Body() dto: CreateUserDto) {
+    // Solo para testing - quitar en producción
+    const user = await this.usersService.create(dto);
+    return new SuccessResponseDto('User created (public endpoint)', user);
+  }
+
   @Get()
   @UseGuards(PermissionsGuard)
   @RequirePermissions(Permission.USERS_READ)
