@@ -20,6 +20,20 @@ export class ProductsService {
     // MongoDB removed - using PostgreSQL only for products
   ) {}
 
+  // Método público para devolver todos los productos activos
+  async findAllPublicActive(): Promise<Product[]> {
+    try {
+      return await this.productsRepository.find({
+        where: { isActive: true },
+        relations: ['category'],
+        order: { createdAt: 'DESC' }
+      });
+    } catch (err) {
+      console.error('Error fetching public active products:', err);
+      return [];
+    }
+  }
+
   async create(createProductDto: CreateProductDto): Promise<Product | null> {
     try {
       const category = await this.categoriesRepository.findOne({ 

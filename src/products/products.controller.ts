@@ -27,6 +27,13 @@ import { diskStorage } from 'multer';
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  // Endpoint público para listar todos los productos activos
+  @Get('public-list')
+  async getPublicProducts() {
+    const products = await this.productsService.findAllPublicActive();
+    return new SuccessResponseDto('Products retrieved successfully', products);
+  }
   @HttpPost()
   async create(@Body() createProductDto: CreateProductDto): Promise<SuccessResponseDto<Product>> {
     const product = await this.productsService.create(createProductDto);

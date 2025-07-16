@@ -8,13 +8,22 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Category } from './category.entity';
-import { SuccessResponseDto } from 'src/common/dto/response.dto';
+// ...existing code...
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+
+import { SuccessResponseDto } from 'src/common/dto/response.dto';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
+
+  // Endpoint público para listar todas las categorías activas
+  @Get('public-list')
+  async getPublicCategories() {
+    const categories = await this.categoriesService.findActive();
+    return new SuccessResponseDto('Categories retrieved successfully', categories);
+  }
   @Post()
   async create(@Body() dto: CreateCategoryDto) {
     const category = await this.categoriesService.create(dto);
