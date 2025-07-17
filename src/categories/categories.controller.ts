@@ -14,17 +14,27 @@ import { diskStorage } from 'multer';
 
 import { SuccessResponseDto } from 'src/common/dto/response.dto';
 
-@Controller('categories')
+@Controller()
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  // Endpoint público para listar todas las categorías activas
-  @Get('public-list')
+  // Rutas públicas
+  @Get('categories/public')
   async getPublicCategories() {
     const categories = await this.categoriesService.findActive();
     return new SuccessResponseDto('Categories retrieved successfully', categories);
   }
-  @Post()
+
+  @Get('categories/:slug')
+  async getPublicCategory(@Param('slug') slug: string) {
+    const category = await this.categoriesService.findBySlug(slug);
+    if (!category) throw new NotFoundException('Category not found');
+    return new SuccessResponseDto('Category retrieved successfully', category);
+  }
+
+  // Rutas administrativas
+  @UseGuards(AdminGuard)
+  @Post('admin/categories')
   async create(@Body() dto: CreateCategoryDto) {
     const category = await this.categoriesService.create(dto);
     if (!category) throw new InternalServerErrorException('Failed to create category');
