@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const API_BASE_URL = 'https://nestjs-ecommerce-backend-api.desarrollo-software.xyz/api';
 
-export const useUsers = () => {
+const useUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
