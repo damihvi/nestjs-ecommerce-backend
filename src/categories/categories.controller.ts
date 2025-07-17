@@ -1,31 +1,32 @@
 import {
   Controller, Get, Post, Put, Delete,
   Param, Body, Query, NotFoundException, InternalServerErrorException,
-  UseInterceptors, UploadedFile, BadRequestException
+  UseInterceptors, UploadedFile, BadRequestException, UseGuards
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Category } from './category.entity';
-// ...existing code...
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-
 import { SuccessResponseDto } from 'src/common/dto/response.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/roles.enum';
 
-@Controller()
+@Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   // Rutas públicas
-  @Get('categories/public')
+  @Get('public')
   async getPublicCategories() {
     const categories = await this.categoriesService.findActive();
     return new SuccessResponseDto('Categories retrieved successfully', categories);
   }
 
-  @Get('categories/:slug')
+  @Get('public/:slug')
   async getPublicCategory(@Param('slug') slug: string) {
     const category = await this.categoriesService.findBySlug(slug);
     if (!category) throw new NotFoundException('Category not found');
@@ -33,14 +34,17 @@ export class CategoriesController {
   }
 
   // Rutas administrativas
-  @UseGuards(AdminGuard)
-  @Post('admin/categories')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Post()
   async create(@Body() dto: CreateCategoryDto) {
     const category = await this.categoriesService.create(dto);
     if (!category) throw new InternalServerErrorException('Failed to create category');
     return new SuccessResponseDto('Category created successfully', category);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT)
   @Get()
   async findAll(
     @Query('page') page = 1,
@@ -55,12 +59,16 @@ export class CategoriesController {
     return new SuccessResponseDto('Categories retrieved successfully', result);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT)
   @Get('active')
   async findActive(): Promise<SuccessResponseDto<Category[]>> {
     const categories = await this.categoriesService.findActive();
     return new SuccessResponseDto('Active categories retrieved successfully', categories);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT)
   @Get('slug/:slug')
   async findBySlug(@Param('slug') slug: string) {
     const category = await this.categoriesService.findBySlug(slug);
@@ -68,24 +76,35 @@ export class CategoriesController {
     return new SuccessResponseDto('Category retrieved successfully', category);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const category = await this.categoriesService.findOne(id);
     if (!category) throw new NotFoundException('Category not found');
     return new SuccessResponseDto('Category retrieved successfully', category);
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     const category = await this.categoriesService.update(id, dto);
     if (!category) throw new NotFoundException('Category not found');
     return new SuccessResponseDto('Category updated successfully', category);
   }
-  @Put(':id/toggle-active')
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Put(':id/toggle')
   async toggleActive(@Param('id') id: string) {
     const category = await this.categoriesService.toggleActive(id);
     if (!category) throw new NotFoundException('Category not found');
     return new SuccessResponseDto('Category status toggled successfully', category);
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('image', {
     storage: diskStorage({
@@ -112,6 +131,8 @@ export class CategoriesController {
     if (!category) throw new NotFoundException('Category not found');
     return new SuccessResponseDto('Category image updated successfully', category);
   }
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const category = await this.categoriesService.remove(id);
