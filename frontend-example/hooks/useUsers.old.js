@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
+// Configuración de la API
 const API_BASE_URL = 'https://nestjs-ecommerce-backend-api.desarrollo-software.xyz/api';
 
+// Hook personalizado para manejar usuarios
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,10 +14,6 @@ export const useUsers = () => {
     totalItems: 0,
     itemsPerPage: 10
   });
-  
-  // Usar useRef para mantener una referencia estable a pagination
-  const paginationRef = useRef(pagination);
-  paginationRef.current = pagination;
 
   // Función para obtener usuarios del backend
   const fetchUsers = useCallback(async (page = 1, limit = 10) => {
@@ -23,12 +21,13 @@ export const useUsers = () => {
     setError(null);
     
     try {
-      console.log('Fetching users with:', { page, limit });
-      
-      const response = await fetch(`${API_BASE_URL}/users?page=${page}&limit=${limit}`, {
+      // Usar el endpoint público que funciona
+      const response = await fetch(`${API_BASE_URL}/users/public-list`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          // Agregar token si es necesario
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
       });
 
@@ -37,17 +36,23 @@ export const useUsers = () => {
       }
 
       const data = await response.json();
-      console.log('API Response:', data);
+      console.log('API Response:', data); // Para debugging
       
-      if (data.success) {
-        setUsers(data.data.items || []);
-        setPagination(prev => ({
-          ...prev,
+      if (data.success && data.data && data.data.items) {
+        const allUsers = data.data.items;
+        
+        // Implementar paginación manual del lado del cliente
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedUsers = allUsers.slice(startIndex, endIndex);
+        
+        setUsers(paginatedUsers);
+        setPagination({
           currentPage: page,
-          totalPages: Math.ceil((data.data.meta?.totalItems || 0) / limit),
-          totalItems: data.data.meta?.totalItems || 0,
+          totalPages: Math.ceil(allUsers.length / limit),
+          totalItems: allUsers.length,
           itemsPerPage: limit
-        }));
+        });
       } else {
         throw new Error(data.message || 'Error al obtener usuarios');
       }
@@ -81,8 +86,8 @@ export const useUsers = () => {
       const data = await response.json();
       
       if (data.success) {
-        // Usar la referencia estable a pagination
-        await fetchUsers(paginationRef.current.currentPage, paginationRef.current.itemsPerPage);
+        // Recargar la lista de usuarios después de crear uno nuevo
+        await fetchUsers(pagination.currentPage, pagination.itemsPerPage);
         return data.data;
       } else {
         throw new Error(data.message || 'Error al crear usuario');
@@ -94,7 +99,7 @@ export const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [fetchUsers, pagination.currentPage, pagination.itemsPerPage]);
 
   // Función para eliminar un usuario
   const deleteUser = useCallback(async (userId) => {
@@ -116,8 +121,8 @@ export const useUsers = () => {
       const data = await response.json();
       
       if (data.success) {
-        // Usar la referencia estable a pagination
-        await fetchUsers(paginationRef.current.currentPage, paginationRef.current.itemsPerPage);
+        // Recargar la lista de usuarios después de eliminar
+        await fetchUsers(pagination.currentPage, pagination.itemsPerPage);
         return true;
       } else {
         throw new Error(data.message || 'Error al eliminar usuario');
@@ -129,7 +134,7 @@ export const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [fetchUsers, pagination.currentPage, pagination.itemsPerPage]);
 
   // Función para actualizar un usuario
   const updateUser = useCallback(async (userId, userData) => {
@@ -152,8 +157,8 @@ export const useUsers = () => {
       const data = await response.json();
       
       if (data.success) {
-        // Usar la referencia estable a pagination
-        await fetchUsers(paginationRef.current.currentPage, paginationRef.current.itemsPerPage);
+        // Recargar la lista de usuarios después de actualizar
+        await fetchUsers(pagination.currentPage, pagination.itemsPerPage);
         return data.data;
       } else {
         throw new Error(data.message || 'Error al actualizar usuario');
@@ -165,22 +170,12 @@ export const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
-
-  // Función para cambiar de página
-  const goToPage = useCallback((page) => {
-    fetchUsers(page, pagination.itemsPerPage);
-  }, [fetchUsers, pagination.itemsPerPage]);
-
-  // Función para cambiar el tamaño de página
-  const changePageSize = useCallback((size) => {
-    fetchUsers(1, size);
-  }, [fetchUsers]);
+  }, [fetchUsers, pagination.currentPage, pagination.itemsPerPage]);
 
   // Cargar usuarios al montar el componente
   useEffect(() => {
-    fetchUsers(1, pagination.itemsPerPage);
-  }, [fetchUsers, pagination.itemsPerPage]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   return {
     users,
@@ -191,8 +186,62 @@ export const useUsers = () => {
     createUser,
     deleteUser,
     updateUser,
-    goToPage,
-    changePageSize,
+    // Función para cambiar de página
+    goToPage: (page) => fetchUsers(page, pagination.itemsPerPage),
+    // Función para cambiar tamaño de página
+    changePageSize: (size) => fetchUsers(1, size),
+  };
+};
+
+// Hook para obtener un usuario específico
+export const useUser = (userId) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchUser = useCallback(async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setUser(data.data);
+      } else {
+        throw new Error(data.message || 'Error al obtener usuario');
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+      setError(err.message);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  return {
+    user,
+    loading,
+    error,
+    refetch: fetchUser,
   };
 };
 
