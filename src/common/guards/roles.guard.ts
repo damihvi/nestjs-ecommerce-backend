@@ -14,7 +14,8 @@ export class RolesGuard implements CanActivate {
     ]);
 
     if (!requiredRoles) {
-      return true; // Si no hay roles requeridos, permitir acceso
+      console.log('No roles required for this route, allowing access');
+      return true;
     }
 
     const request = context.switchToHttp().getRequest();
@@ -22,11 +23,34 @@ export class RolesGuard implements CanActivate {
     
     // Si no hay usuario en el request, verificar el header X-User-Roles
     if (!user?.roles) {
-      const userRoles = request.headers['x-user-roles']?.split(',') || [];
-      return requiredRoles.some((role) => userRoles.includes(role));
+      const userRolesHeader = request.headers['x-user-roles'];
+      if (!userRolesHeader) {
+        console.log('No user roles found in request or headers');
+        return false;
+      }
+
+      const userRoles = userRolesHeader.split(',')
+        .map(role => role.trim())
+        .filter(role => role !== '')
+        .filter(role => Object.values(UserRole).includes(role as UserRole));
+
+      if (userRoles.length === 0) {
+        console.log('No valid user roles found in header');
+        return false;
+      }
+
+      const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+      console.log(`User roles from header: ${userRoles.join(', ')}`);
+      console.log(`Required roles: ${requiredRoles.join(', ')}`);
+      console.log(`Access ${hasRequiredRole ? 'granted' : 'denied'}`);
+      return hasRequiredRole;
     }
     
     // Si hay usuario en el request, verificar sus roles
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    const hasRequiredRole = requiredRoles.some(role => user.roles?.includes(role));
+    console.log(`User roles from session: ${user.roles?.join(', ')}`);
+    console.log(`Required roles: ${requiredRoles.join(', ')}`);
+    console.log(`Access ${hasRequiredRole ? 'granted' : 'denied'}`);
+    return hasRequiredRole;
   }
 }

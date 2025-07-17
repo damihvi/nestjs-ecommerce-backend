@@ -50,6 +50,10 @@ export class UpdateProductDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @IsOptional()
   @IsUUID()
   categoryId?: string;
 }

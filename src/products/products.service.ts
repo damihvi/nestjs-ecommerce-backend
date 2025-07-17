@@ -20,17 +20,80 @@ export class ProductsService {
     // MongoDB removed - using PostgreSQL only for products
   ) {}
 
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private async ensureUniqueSlug(baseSlug: string, productId?: string): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
+    let exists = true;
+
+    while (exists) {
+      const query = this.productsRepository.createQueryBuilder('product')
+        .where('product.slug = :slug', { slug });
+      
+      if (productId) {
+        query.andWhere('product.id != :id', { id: productId });
+      }
+
+      const existingProduct = await query.getOne();
+      exists = existingProduct !== null;
+      
+      if (exists) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      } else {
+        break;
+      }
+    }
+
+    return slug;
+  }
+
   // Método público para devolver todos los productos activos
-  async findAllPublicActive(): Promise<Product[]> {
+  async findActive(options: IPaginationOptions, category?: string): Promise<Pagination<Product>> {
     try {
-      return await this.productsRepository.find({
-        where: { isActive: true },
-        relations: ['category'],
-        order: { createdAt: 'DESC' }
-      });
+      const queryBuilder = this.productsRepository.createQueryBuilder('product')
+        .leftJoinAndSelect('product.category', 'category')
+        .where('product.isActive = :isActive', { isActive: true });
+
+      if (category) {
+        queryBuilder.andWhere('category.id = :categoryId', { categoryId: category });
+      }
+
+      queryBuilder.orderBy('product.createdAt', 'DESC');
+
+      return await paginate<Product>(queryBuilder, options);
     } catch (err) {
       console.error('Error fetching public active products:', err);
-      return [];
+      return {
+        items: [],
+        meta: {
+          totalItems: 0,
+          itemCount: 0,
+          itemsPerPage: Number(options.limit),
+          totalPages: 0,
+          currentPage: Number(options.page)
+        }
+      };
+    }
+  }
+
+  async findBySlug(slug: string): Promise<Product | null> {
+    try {
+      return await this.productsRepository.findOne({
+        where: { slug },
+        relations: ['category']
+      });
+    } catch (err) {
+      console.error('Error fetching product by slug:', err);
+      return null;
     }
   }
 
@@ -40,6 +103,9 @@ export class ProductsService {
         where: { id: createProductDto.categoryId } 
       });
       if (!category) return null;
+
+      const baseSlug = this.generateSlug(createProductDto.name);
+      const slug = await this.ensureUniqueSlug(baseSlug);
 
       const product = this.productsRepository.create({
         name: createProductDto.name,
@@ -54,6 +120,7 @@ export class ProductsService {
         dimensions: createProductDto.dimensions,
         isActive: createProductDto.isActive ?? true,
         category: category,
+        slug: slug,
       });
 
       const savedProduct = await this.productsRepository.save(product);
@@ -134,6 +201,11 @@ export class ProductsService {
         });
         if (!category) return null;
         product.category = category;
+      }
+
+      if (updateProductDto.name && updateProductDto.name !== product.name) {
+        const baseSlug = this.generateSlug(updateProductDto.name);
+        updateProductDto.slug = await this.ensureUniqueSlug(baseSlug, id);
       }
 
       Object.assign(product, updateProductDto);

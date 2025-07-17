@@ -16,12 +16,14 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard, RequirePermissions, Permission } from '../common/guards/permissions.guard';
 import { AdminGuard } from '../admin/admin.guard';
 import { GetUser } from '../auth/get-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
-  @Post()
+  @Post('public')
   async create(@Body() dto: CreateUserDto) {
     try {
       const user = await this.usersService.create(dto);
@@ -36,8 +38,8 @@ export class UsersController {
     }
   }
 
-  @Post('/admin-create')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Post('/admin')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async adminCreateUser(@Body() dto: CreateUserDto, @GetUser() currentUser: User) {
     const user = await this.usersService.create(dto);
     return new SuccessResponseDto('User created by admin successfully', user);
@@ -146,8 +148,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(PermissionsGuard)
-  @RequirePermissions(Permission.USERS_DELETE)
+  @Roles(UserRole.ADMIN)
   async remove(@Param('id') id: string, @GetUser() currentUser: User) {
     const user = await this.usersService.remove(id);
     if (!user) throw new NotFoundException('User not found');
@@ -175,8 +176,7 @@ export class UsersController {
   }
 
   @Get('/test-admin')
-  @UseGuards(PermissionsGuard)
-  @RequirePermissions(Permission.USERS_READ)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async testAdmin(@GetUser() currentUser: User) {
     return new SuccessResponseDto('Admin test successful', {
       user: currentUser,
@@ -185,7 +185,7 @@ export class UsersController {
   }
 
   @Get('/admin-info')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async getAdminInfo(@GetUser() currentUser: User) {
     return new SuccessResponseDto('Admin info retrieved', {
       id: currentUser.id,
