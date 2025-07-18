@@ -21,18 +21,30 @@ async function bootstrap() {
     // Disable X-Powered-By header for security
     app.getHttpAdapter().getInstance().disable('x-powered-by');
       // Enable CORS for Railway deployment
+    // Configure CORS
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? [
+          'https://ecommerce-herrera-ealgy02tb-damian-herreras-projects.vercel.app',
+          'https://ecommerce-herrera.vercel.app',
+          'http://localhost:5173',
+          'http://localhost:3000'
+        ]
+      : ['http://localhost:5173', 'http://localhost:3000'];
+
     app.enableCors({
-      origin: process.env.NODE_ENV === 'production'
-        ? [
-            'https://ecommerce-herrera-ealgy02tb-damian-herreras-projects.vercel.app',
-            'https://ecommerce-herrera.vercel.app',
-            'http://localhost:5173',
-            'http://localhost:3000'
-          ]
-        : ['http://localhost:5173', 'http://localhost:3000'],
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.warn(`Blocked request from unauthorized origin: ${origin}`);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-User-Roles'],
+      exposedHeaders: ['Set-Cookie'],
+      maxAge: 86400, // 24 hours in seconds
     });
   // Configure session middleware
   app.use(
