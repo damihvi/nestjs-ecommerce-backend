@@ -22,12 +22,17 @@ async function bootstrap() {
     app.getHttpAdapter().getInstance().disable('x-powered-by');
       // Enable CORS for Railway deployment
     app.enableCors({
-      origin: process.env.NODE_ENV === 'production' 
-        ? true // Allow all origins in production for now
-        : true,
+      origin: process.env.NODE_ENV === 'production'
+        ? [
+            'https://ecommerce-herrera-ealgy02tb-damian-herreras-projects.vercel.app',
+            'https://ecommerce-herrera.vercel.app',
+            'http://localhost:5173',
+            'http://localhost:3000'
+          ]
+        : ['http://localhost:5173', 'http://localhost:3000'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-User-Roles'],
     });
   // Configure session middleware
   app.use(
