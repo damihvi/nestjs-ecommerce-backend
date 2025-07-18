@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
@@ -9,112 +8,53 @@ import * as passport from 'passport';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-      logger: process.env.NODE_ENV === 'production' 
-        ? ['error', 'warn', 'log'] 
-        : ['error', 'warn', 'log', 'debug', 'verbose'],
-    });
-    
-    // Trust proxy for Railway (important for health checks)
-    app.set('trust proxy', 1);
-    
-    // Disable X-Powered-By header for security
-    app.getHttpAdapter().getInstance().disable('x-powered-by');
-      // Enable CORS for Railway deployment
-    // Configure CORS with detailed logging
-    const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? [
-          'https://ecommerce-herrera-ealgy02tb-damian-herreras-projects.vercel.app',
-          'https://ecommerce-herrera.vercel.app',
-          'https://ecommerce-herrera-git-main-damian-herreras-projects.vercel.app',
-          'https://ecommerce-herrera-damian-herreras-projects.vercel.app',
-          'http://localhost:5173',
-          'http://localhost:3000'
-        ]
-      : ['http://localhost:5173', 'http://localhost:3000'];
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-    console.log('Allowed Origins:', allowedOrigins);
-
+    // Enable CORS with a simpler configuration
     app.enableCors({
-      origin: (origin, callback) => {
-        console.log('Request from origin:', origin);
-        
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) {
-          console.log('Allowing request with no origin');
-          callback(null, true);
-          return;
-        }
-
-        if (allowedOrigins.includes(origin)) {
-          console.log('Allowing request from origin:', origin);
-          callback(null, true);
-        } else {
-          console.warn(`Blocked request from unauthorized origin: ${origin}`);
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
+      origin: true, // Allow all origins
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: [
-        'Content-Type', 
-        'Authorization', 
-        'Accept', 
-        'X-Requested-With', 
-        'X-User-Roles', 
-        'Access-Control-Allow-Origin', 
-        'Access-Control-Allow-Credentials'
-      ],
-      exposedHeaders: ['Set-Cookie', 'Authorization'],
-      maxAge: 86400 // CORS preflight cache time (24 hours)
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders: '*',
     });
-  // Configure session middleware
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        maxAge: 1000 * 60 * 60 * 24, // 24 hours
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      },
-    }),
-  );
 
-  // Initialize Passport and session support
-  app.use(passport.initialize());
-  app.use(passport.session());
+    // Basic session configuration
+    app.use(
+      session({
+        secret: process.env.SESSION_SECRET || 'dev-secret',
+        resave: true,
+        saveUninitialized: true,
+        cookie: { secure: false }
+      }),
+    );
 
-  // Global pipes and filters (only once)
-  app.useGlobalPipes(new ValidationPipe({ 
-    transform: true, 
-    whitelist: true, 
-    forbidNonWhitelisted: true 
-  }));
-  app.useGlobalFilters(new GlobalHttpExceptionFilter());  // Serve static files
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  
-  // Set global prefix for API (exclude health check and root)
-    app.setGlobalPrefix('api', { exclude: ['/', 'health'] });
-  const port = parseInt(process.env.PORT || '3101', 10);
-  const host = '0.0.0.0'; // Always bind to all interfaces for Railway
-  
-  await app.listen(port, host);
-  console.log(`🚀 Application is running on: http://${host}:${port}`);
-  console.log(`🔗 Health check available at: http://${host}:${port}/health`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'External' : 'Local'}`);
+    // Initialize Passport with basic configuration
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    // Simpler validation pipe
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+      }),
+    );
+
+    // Configure static files
+    app.useStaticAssets(join(__dirname, '..', 'public'));
+
+    // Set global API prefix
+    app.setGlobalPrefix('api');
+
+    // Start server
+    const port = process.env.PORT || 3101;
+    await app.listen(port);
+    console.log(`Server running on port ${port}`);
+
   } catch (error) {
-    console.error('❌ Error starting application:', error);
-    console.error('❌ Stack trace:', error.stack);
+    console.error('Error starting application:', error);
     process.exit(1);
   }
 }
 
-bootstrap().catch((error) => {
-  console.error('💥 Critical error during bootstrap:', error);
-  process.exit(1);
-});
+bootstrap();
