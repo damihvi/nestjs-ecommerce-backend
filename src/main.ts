@@ -21,19 +21,34 @@ async function bootstrap() {
     // Disable X-Powered-By header for security
     app.getHttpAdapter().getInstance().disable('x-powered-by');
       // Enable CORS for Railway deployment
-    // Configure CORS
+    // Configure CORS with detailed logging
     const allowedOrigins = process.env.NODE_ENV === 'production'
       ? [
           'https://ecommerce-herrera-ealgy02tb-damian-herreras-projects.vercel.app',
           'https://ecommerce-herrera.vercel.app',
+          'https://ecommerce-herrera-git-main-damian-herreras-projects.vercel.app',
+          'https://ecommerce-herrera-damian-herreras-projects.vercel.app',
           'http://localhost:5173',
           'http://localhost:3000'
         ]
       : ['http://localhost:5173', 'http://localhost:3000'];
 
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('Allowed Origins:', allowedOrigins);
+
     app.enableCors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        console.log('Request from origin:', origin);
+        
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) {
+          console.log('Allowing request with no origin');
+          callback(null, true);
+          return;
+        }
+
+        if (allowedOrigins.includes(origin)) {
+          console.log('Allowing request from origin:', origin);
           callback(null, true);
         } else {
           console.warn(`Blocked request from unauthorized origin: ${origin}`);
@@ -42,9 +57,17 @@ async function bootstrap() {
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-User-Roles'],
-      exposedHeaders: ['Set-Cookie'],
-      maxAge: 86400, // 24 hours in seconds
+      allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'Accept', 
+        'X-Requested-With', 
+        'X-User-Roles', 
+        'Access-Control-Allow-Origin', 
+        'Access-Control-Allow-Credentials'
+      ],
+      exposedHeaders: ['Set-Cookie', 'Authorization'],
+      maxAge: 86400 // CORS preflight cache time (24 hours)
     });
   // Configure session middleware
   app.use(
