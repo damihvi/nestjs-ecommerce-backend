@@ -53,4 +53,42 @@ export class AppService {
       };
     }
   }
+
+  getApiInfo() {
+    return {
+      name: 'Ecommerce API',
+      version: '2.0.0',
+      description: 'Complete ecommerce API with users, products, categories, orders and search',
+      endpoints: {
+        categories: '/api/categories',
+        products: '/api/products',
+        users: '/api/users',
+        orders: '/api/orders',
+        search: '/api/search',
+        health: '/health',
+        info: '/api/info'
+      },
+      features: [
+        'Categories CRUD',
+        'Products CRUD with stock management',
+        'Users system with authentication',
+        'Orders system with items tracking',
+        'Advanced search and filtering',
+        'Statistics and analytics',
+        'Pagination support',
+        'Health monitoring'
+      ],
+      authentication: {
+        register: 'POST /api/users/register',
+        login: 'POST /api/users/login'
+      },
+      search: {
+        products: 'GET /api/search/products?q=term&category=id&minPrice=0&maxPrice=100',
+        categories: 'GET /api/search/categories?q=term',
+        users: 'GET /api/search/users?q=term',
+        stats: 'GET /api/search/stats',
+        topProducts: 'GET /api/search/top-products'
+      }
+    };
+  }
 }

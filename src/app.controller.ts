@@ -14,4 +14,9 @@ export class AppController {
   async getHealth() {
     return this.appService.getHealthStatus();
   }
+
+  @Get('api/info')
+  getApiInfo() {
+    return this.appService.getApiInfo();
+  }
 }
