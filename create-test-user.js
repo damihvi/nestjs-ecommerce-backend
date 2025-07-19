@@ -20,8 +20,8 @@ async function createTestUser() {
       console.log('✅ Usuario de prueba ya existe: test@example.com / 123456');
     } else {
       const query = `
-        INSERT INTO users (email, name, password, role, "isActive", "createdAt")
-        VALUES ('test@example.com', 'Test User', $1, 'user', true, NOW())
+        INSERT INTO users (email, name, "firstName", "lastName", password, role, "isActive", "createdAt")
+        VALUES ('test@example.com', 'Test User', 'Test', 'User', $1, 'user', true, NOW())
       `;
 
       await pool.query(query, [hashedPassword]);

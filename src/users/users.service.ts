@@ -18,7 +18,7 @@ export class UsersService {
 
   async findAll(): Promise<Omit<User, 'password'>[]> {
     const users = await this.userRepo.find({
-      select: ['id', 'email', 'name', 'role', 'isActive', 'phone', 'address', 'createdAt'],
+      select: ['id', 'email', 'name', 'firstName', 'lastName', 'role', 'isActive', 'phone', 'address', 'createdAt'],
       order: { createdAt: 'DESC' }
     });
     return users;
@@ -27,7 +27,7 @@ export class UsersService {
   async findOne(id: string): Promise<Omit<User, 'password'> | null> {
     const user = await this.userRepo.findOne({
       where: { id },
-      select: ['id', 'email', 'name', 'role', 'isActive', 'phone', 'address', 'createdAt']
+      select: ['id', 'email', 'name', 'firstName', 'lastName', 'role', 'isActive', 'phone', 'address', 'createdAt']
     });
     return user;
   }
