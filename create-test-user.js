@@ -13,17 +13,23 @@ async function createTestUser() {
     // Hash simple para la contraseña "123456"
     const hashedPassword = Buffer.from('123456' + 'simple-salt').toString('base64');
     
-    const query = `
-      INSERT INTO users (id, email, "name", password, role, "isActive", "createdAt")
-      VALUES (gen_random_uuid(), 'test@example.com', 'Test User', $1, 'user', true, NOW())
-      ON CONFLICT (email) DO NOTHING;
-    `;
+    // Primero verificar si ya existe
+    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', ['test@example.com']);
+    
+    if (existingUser.rows.length > 0) {
+      console.log('✅ Usuario de prueba ya existe: test@example.com / 123456');
+    } else {
+      const query = `
+        INSERT INTO users (email, name, password, role, "isActive", "createdAt")
+        VALUES ('test@example.com', 'Test User', $1, 'user', true, NOW())
+      `;
 
-    await pool.query(query, [hashedPassword]);
-    console.log('✅ Usuario de prueba creado: test@example.com / 123456');
+      await pool.query(query, [hashedPassword]);
+      console.log('✅ Usuario de prueba creado: test@example.com / 123456');
+    }
     
   } catch (error) {
-    console.error('❌ Error creando usuario:', error);
+    console.error('❌ Error creando usuario:', error.message);
   } finally {
     await pool.end();
   }

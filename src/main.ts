@@ -4,8 +4,17 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Configure CORS
-  app.enableCors();
+  // Configure CORS for production
+  app.enableCors({
+    origin: [
+      'https://ecommerce-frontend-sage-three.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  });
   
   // Set global prefix
   app.setGlobalPrefix('api');
