@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('categories')
 export class Category {
@@ -11,18 +11,9 @@ export class Category {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  image: string;
+  @Column({ unique: true })
+  slug: string;
 
   @Column({ default: true })
   isActive: boolean;
-
-  @Column({ unique: true, nullable: true })
-  slug: string; // URL-friendly version of name
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
