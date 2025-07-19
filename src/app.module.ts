@@ -16,9 +16,9 @@ import { AppService } from './app.service';
       url: process.env.DATABASE_URL || 'postgresql://localhost:5432/ecommerce',
       entities: [Category],
       synchronize: process.env.NODE_ENV !== 'production',
-      ssl: { 
-        rejectUnauthorized: false 
-      },
+      ssl: process.env.DATABASE_URL ? { 
+        rejectUnauthorized: false
+      } : false,
       logging: process.env.NODE_ENV === 'development',
       retryAttempts: 3,
       retryDelay: 3000,
