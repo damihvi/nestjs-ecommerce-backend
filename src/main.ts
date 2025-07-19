@@ -6,11 +6,22 @@ async function bootstrap() {
   
   // Configure CORS for production
   app.enableCors({
-    origin: [
-      'https://ecommerce-frontend-sage-three.vercel.app',
-      'http://localhost:3000',
-      'http://localhost:3001'
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // Allow any Vercel domain or localhost
+      if (
+        origin.includes('.vercel.app') ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('https://localhost:')
+      ) {
+        return callback(null, true);
+      }
+      
+      // Reject other origins
+      callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
